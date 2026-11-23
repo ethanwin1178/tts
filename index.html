@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#7C6CF0">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<title>小语音</title>
+<style>
+  /* ================= 基础变量 ================= */
+  :root {
+    --primary: #7C6CF0;
+    --primary-soft: #F2EFFF;
+    --primary-line: #D9D3FA;
+    --text: #2C2938;
+    --muted: #8B889C;
+    --line: #EFEDF8;
+    --radius: 16px;
+    --ease: cubic-bezier(.22, .61, .36, 1);
+    --shadow: 0 6px 20px rgba(124, 108, 240, .07);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    margin: 0;
+    background: #FAF9FE;
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 22px 16px calc(48px + env(safe-area-inset-bottom));
+  }
+
+  /* ================= 头部 ================= */
+  .head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 0 4px;
+  }
+
+  .head .logo {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    flex: none;
+    font-size: 21px;
+    border-radius: 13px;
+    background: var(--primary-soft);
+    box-shadow: 0 4px 12px rgba(124, 108, 240, .14);
+  }
+
+  .head .title { min-width: 0; }
+
+  .head h1 {
+    margin: 0;
+    font-size: 21px;
+    font-weight: 650;
+    letter-spacing: .3px;
+    line-height: 1.3;
+  }
+
+  .head p {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  .badge {
+    margin-left: auto;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #fff;
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+
+  .badge::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #34C77B;
+    box-shadow: 0 0 0 3px rgba(52, 199, 123, .14);
+  }
+
+  /* ================= 卡片 ================= */
+  .card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    transition: border-color .18s var(--ease), box-shadow .18s var(--ease);
+  }
+
+  .card:focus-within {
+    border-color: var(--primary-line);
+    box-shadow: 0 6px 22px rgba(124, 108, 240, .12);
+  }
+
+  .card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: .5px;
+  }
+
+  .card-head .muted {
+    font-size: 11.5px;
+    color: #B4B1C4;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ================= 文本输入 ================= */
+  textarea {
+    display: block;
+    width: 100%;
+    min-height: 176px;
+    padding: 4px 2px;
+    border: 0;
+    outline: 0;
+    resize: vertical;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: 16px;              /* 16px 可避免 iOS 聚焦时自动放大 */
+    line-height: 1.75;
+  }
+
+  textarea::placeholder { color: #BDB9CC; }
+
+  .meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 6px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line);
+    flex-wrap: wrap;
+  }
+
+  .count { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .count b { color: var(--text); font-weight: 600; }
+
+  .chips { display: flex; gap: 7px; flex-wrap: wrap; }
+
+  .chip {
+    height: 30px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #FAFAFE;
+    color: var(--muted);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color .16s var(--ease), border-color .16s var(--ease),
+                color .16s var(--ease), transform .16s var(--ease);
+  }
+
+  .chip:hover {
+    background: var(--primary-soft);
+    border-color: var(--primary-line);
+    color: var(--primary);
+    transform: translateY(-1px);
+  }
+
+  .chip:active { transform: translateY(0) scale(.98); }
+
+  .note {
+    margin: 12px 0 0;
+    font-size: 11.5px;
+    line-height: 1.9;
+    color: #B4B1C4;
+  }
+
+  kbd {
+    padding: 1px 6px;
+    border: 1px solid #E3E0F2;
+    border-radius: 6px;
+    background: #FAFAFE;
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 10.5px;
+    color: var(--muted);
+  }
+
+  /* ================= 音色下拉 ================= */
+  .voice-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+  }
+
+  select {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    min-width: 0;
+    height: 46px;
+    padding: 0 40px 0 14px;
+    border: 1.5px solid var(--line);
+    border-radius: 13px;
+    /* 右侧小箭头用内联 SVG 画，省一张图片请求 */
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%238B889C' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center / 11px 8px;
+    color: var(--text);
+    font: inherit;
+    font-size: 14.5px;
+    font-weight: 600;
+    outline: 0;
+    cursor: pointer;
+    transition: border-color .18s var(--ease), box-shadow .18s var(--ease);
+  }
+
+  select:hover { border-color: var(--primary-line); }
+
+  select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px var(--primary-soft);
+  }
+
+  select optgroup { font-size: 13px; font-weight: 500; color: var(--muted); }
+  select option { font-size: 14px; font-weight: 500; color: var(--text); }
+
+  /* 试听按钮 */
+  .v-play {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    border: 1.5px solid var(--primary-line);
+    border-radius: 50%;
+    background: #fff;
+    color: var(--primary);
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform .16s var(--ease), background-color .16s var(--ease),
+                color .16s var(--ease), border-color .16s var(--ease);
+  }
+
+  .v-play:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+    transform: scale(1.06);
+  }
+
+  .v-play:disabled { cursor: progress; }
+
+  .v-play.loading { color: transparent; position: relative; }
+  .v-play.loading::after {
+    content: "";
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    border: 2px solid var(--primary-line);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ================= 参数滑条 ================= */
+  .field + .field {
+    margin-top: 10px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--line);
+  }
+
+  .field label {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 4px;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .field label b {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--primary);
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 30px;                 /* 高度做大一点，手机好拖 */
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+    --fill: 50%;
+  }
+
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 5px;
+    border-radius: 999px;
+    background: linear-gradient(to right,
+      var(--primary) 0%, var(--primary) var(--fill),
+      #EDEAFB var(--fill), #EDEAFB 100%);
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    margin-top: -7.5px;
+    border-radius: 50%;
+    border: 3px solid var(--primary);
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(124, 108, 240, .35);
+    transition: transform .14s var(--ease);
+  }
+
+  input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.06); }
+  input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.14); }
+
+  input[type="range"]::-moz-range-track { height: 5px; border-radius: 999px; background: #EDEAFB; }
+  input[type="range"]::-moz-range-progress { height: 5px; border-radius: 999px; background: var(--primary); }
+  input[type="range"]::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    border: 3px solid var(--primary);
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(124, 108, 240, .35);
+  }
+
+  /* ================= 按钮 ================= */
+  .actions {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 50px;
+    padding: 0 16px;
+    border: 1.5px solid transparent;
+    border-radius: 13px;
+    font: inherit;
+    font-size: 14.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .16s var(--ease), box-shadow .16s var(--ease),
+                background-color .16s var(--ease), color .16s var(--ease),
+                border-color .16s var(--ease);
+  }
+
+  .btn:active { transform: scale(.985); }
+
+  .btn:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(124, 108, 240, .26);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 26px rgba(124, 108, 240, .32);
+  }
+
+  .btn-ghost {
+    background: #fff;
+    border-color: var(--primary-line);
+    color: var(--primary);
+  }
+
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--primary-soft);
+    transform: translateY(-1px);
+  }
+
+  .btn svg { flex: none; opacity: .92; }
+  .btn-primary svg { opacity: 1; }
+
+  .btn-block { width: 100%; }
+
+  .download-btn { margin-top: 16px; }
+
+  /* ================= 进度与状态 ================= */
+  .progress {
+    height: 5px;
+    border-radius: 999px;
+    background: #EDEAFB;
+    overflow: hidden;
+    margin: 14px 0 10px;
+  }
+
+  .progress i {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #A99BFB, var(--primary));
+    transition: width .2s linear;
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    padding: 0 2px;
+  }
+
+  .status > span { display: inline-flex; align-items: center; }
+
+  .dot {
+    position: relative;
+    width: 7px;
+    height: 7px;
+    margin-right: 8px;
+    border-radius: 50%;
+    background: #CFCCDE;
+    display: inline-block;
+    transition: background-color .2s var(--ease);
+  }
+
+  .dot.on { background: var(--primary); }
+
+  .dot.on::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border: 1px solid var(--primary);
+    border-radius: 50%;
+    opacity: .5;
+    animation: ring 1.8s var(--ease) infinite;
+  }
+
+  @keyframes ring {
+    0% { transform: scale(.65); opacity: .5; }
+    70%, 100% { transform: scale(1.5); opacity: 0; }
+  }
+
+  /* ================= 底部红色轻提示 ================= */
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(22px + env(safe-area-inset-bottom));
+    z-index: 90;
+    max-width: calc(100% - 32px);
+    padding: 11px 16px;
+    border: 1px solid #F7D2D2;
+    border-radius: 12px;
+    background: #FDEDED;
+    color: #C23B3B;
+    font-size: 13.5px;
+    line-height: 1.5;
+    text-align: center;
+    box-shadow: 0 10px 26px rgba(194, 59, 59, .14);
+    opacity: 0;
+    transform: translate(-50%, 14px);
+    pointer-events: none;
+    transition: opacity .24s var(--ease), transform .24s var(--ease);
+  }
+
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ================= 手机适配 ================= */
+  @media (max-width: 600px) {
+    .wrap { padding: 16px 12px calc(36px + env(safe-area-inset-bottom)); }
+    .head h1 { font-size: 19px; }
+    .head .logo { width: 38px; height: 38px; font-size: 19px; }
+    .head p, .badge { display: none; }
+    .card { padding: 13px 14px; border-radius: 15px; }
+    textarea { min-height: 150px; }
+    select { height: 44px; font-size: 14px; }
+    .v-play { width: 44px; height: 44px; }
+    .actions { grid-template-columns: 1.5fr 1fr 1fr; gap: 8px; }
+    .btn { min-height: 48px; padding: 0 10px; font-size: 13.5px; }
+  }
+
+  @media (max-width: 380px) {
+    .actions { grid-template-columns: 1fr 1fr; }
+    .btn-primary { grid-column: 1 / -1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dot.on::after { animation: none; opacity: 0; }
+    * { transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="head">
+    <span class="logo">🔊</span>
+    <div class="title">
+      <h1>小语音</h1>
+      <p>中英双语神经音色 · 文字不上传</p>
+    </div>
+    <span class="badge">本地运行</span>
+  </header>
+
+  <!-- 文本 -->
+  <section class="card">
+    <textarea id="text" maxlength="5000" placeholder="粘贴或输入文字…"></textarea>
+    <div class="meta">
+      <span class="count"><b id="count">0</b> / 5000 字</span>
+      <div class="chips">
+        <button class="chip" type="button" data-sample="大家好，很高兴见到你，今天也要元气满满哦。">打招呼</button>
+        <button class="chip" type="button" data-sample="现在是北京时间二十点整，接下来为你播报今天的天气情况。">播报</button>
+        <button class="chip" type="button" data-sample="请注意，前方有障碍物，我会停下来等待指令。">提醒</button>
+        <button class="chip" type="button" data-clear="1">清空</button>
+      </div>
+    </div>
+    <p class="note">快捷键：<kbd>Ctrl</kbd> + <kbd>Enter</kbd> 开始播放，<kbd>Esc</kbd> 停止。点音色右侧的 ▶ 可试听例句。</p>
+  </section>
+
+  <!-- 音色 -->
+  <section class="card">
+    <div class="card-head">
+      <h2>音色</h2>
+      <span class="muted" id="voiceCount">加载中</span>
+    </div>
+    <div class="voice-row">
+      <select id="voiceSel" aria-label="音色选择"></select>
+      <button class="v-play" id="voicePreview" type="button" title="试听例句" aria-label="试听当前音色">▶</button>
+    </div>
+  </section>
+
+  <!-- 参数 -->
+  <section class="card">
+    <div class="card-head">
+      <h2>语音设置</h2>
+    </div>
+    <div class="field">
+      <label>语速 <b id="rateVal">1.0×</b></label>
+      <input type="range" id="rate" min="0.5" max="2" step="0.1" value="1" aria-label="语速">
+    </div>
+    <div class="field">
+      <label>音调 <b id="pitchVal">+0Hz</b></label>
+      <input type="range" id="pitch" min="-20" max="20" step="1" value="0" aria-label="音调">
+    </div>
+    <div class="field">
+      <label>音量 <b id="volumeVal">100%</b></label>
+      <input type="range" id="volume" min="0" max="1" step="0.05" value="1" aria-label="音量">
+    </div>
+  </section>
+
+  <!-- 操作：播放 / 暂停 / 停止 -->
+  <div class="actions">
+    <button class="btn btn-primary" id="playBtn" type="button">
+      <svg width="13" height="13" viewBox="0 0 12 14" fill="currentColor" aria-hidden="true"><path d="M1.6 1.1a.9.9 0 0 0-1.4.77v10.26a.9.9 0 0 0 1.4.77l8.1-5.13a.9.9 0 0 0 0-1.54L1.6 1.1Z"/></svg>
+      <span id="playLabel">播放</span>
+    </button>
+    <button class="btn btn-ghost" id="pauseBtn" type="button" disabled>
+      <svg width="12" height="13" viewBox="0 0 10 13" fill="currentColor" aria-hidden="true"><rect x="0" y="0" width="3.4" height="13" rx="1.2"/><rect x="6.6" y="0" width="3.4" height="13" rx="1.2"/></svg>
+      <span id="pauseLabel">暂停</span>
+    </button>
+    <button class="btn btn-ghost" id="stopBtn" type="button" disabled>
+      <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><rect width="12" height="12" rx="2.4"/></svg>
+      <span>停止</span>
+    </button>
+  </div>
+
+  <div class="progress" role="progressbar" aria-label="播放进度" aria-valuemin="0" aria-valuemax="100">
+    <i id="bar"></i>
+  </div>
+
+  <div class="status">
+    <span><i class="dot" id="dot"></i><span id="status" aria-live="polite">就绪</span></span>
+    <span id="engine">edge-tts</span>
+  </div>
+
+  <button class="btn btn-ghost btn-block download-btn" id="downloadBtn" type="button" disabled>⬇ 下载 MP3</button>
+
+</div>
+
+<audio id="audio" preload="auto"></audio>
+<div class="toast" id="toast" role="alert" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  var el = {
+    text: $("text"),
+    count: $("count"),
+    voiceSel: $("voiceSel"),
+    voicePreview: $("voicePreview"),
+    voiceCount: $("voiceCount"),
+    rate: $("rate"),
+    rateVal: $("rateVal"),
+    pitch: $("pitch"),
+    pitchVal: $("pitchVal"),
+    volume: $("volume"),
+    volumeVal: $("volumeVal"),
+    playBtn: $("playBtn"),
+    playLabel: $("playLabel"),
+    pauseBtn: $("pauseBtn"),
+    pauseLabel: $("pauseLabel"),
+    stopBtn: $("stopBtn"),
+    downloadBtn: $("downloadBtn"),
+    bar: $("bar"),
+    status: $("status"),
+    dot: $("dot"),
+    audio: $("audio"),
+    toast: $("toast")
+  };
+
+  var state = {
+    voices: [],
+    voiceId: "",
+    busy: false,       // 合成请求进行中
+    lastBlob: null,    // 主按钮合成出来的音频，下载时直接复用
+    url: "",           // 当前 audio 的 blob 地址
+    stopped: false     // 避免「停止」触发的 pause 事件被当成「已暂停」
+  };
+
+  /* ================= 小工具 ================= */
+
+  var toastTimer = 0;
+  function showError(msg) {
+    el.toast.textContent = msg;
+    el.toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.toast.classList.remove("show"); }, 3600);
+  }
+
+  function setStatus(text, active) {
+    el.status.textContent = text;
+    el.dot.classList.toggle("on", !!active);
+  }
+
+  function signed(n) { return (n >= 0 ? "+" : "") + n; }
+
+  function stamp(d) {
+    var p = function (n) { return String(n).padStart(2, "0"); };
+    return "" + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) +
+           "_" + p(d.getHours()) + p(d.getMinutes());
+  }
+
+  function paintRange(input) {
+    var min = Number(input.min), max = Number(input.max), v = Number(input.value);
+    input.style.setProperty("--fill", (((v - min) / (max - min)) * 100).toFixed(2) + "%");
+  }
+
+  function updateCount() { el.count.textContent = el.text.value.length; }
+
+  // 三个滑条 → edge-tts 要求的字符串
+  // 语速：0.5~2 倍换算成 -50%~+100%；音量：100% 对应 +0%，越小越负
+  function buildParams() {
+    var ratePct = Math.round((Number(el.rate.value) - 1) * 100);
+    var volPct = Math.round((Number(el.volume.value) - 1) * 100);
+    return {
+      rate: signed(ratePct) + "%",
+      pitch: signed(Number(el.pitch.value)) + "Hz",
+      volume: signed(volPct) + "%"
+    };
+  }
+
+  function syncLabels() {
+    el.rateVal.textContent = Number(el.rate.value).toFixed(1) + "×";
+    el.pitchVal.textContent = signed(Number(el.pitch.value)) + "Hz";
+    el.volumeVal.textContent = Math.round(Number(el.volume.value) * 100) + "%";
+    paintRange(el.rate);
+    paintRange(el.pitch);
+    paintRange(el.volume);
+  }
+
+  /* ================= 音色下拉 ================= */
+
+  function renderVoices(list) {
+    // 按 group 归类，用 <optgroup> 做下拉框里的分组标题
+    var groups = [], map = {};
+    list.forEach(function (v) {
+      var key = v.group || "其他";
+      if (!map[key]) { map[key] = []; groups.push(key); }
+      map[key].push(v);
+    });
+
+    el.voiceSel.innerHTML = "";
+    groups.forEach(function (name) {
+      var og = document.createElement("optgroup");
+      og.label = name;
+      map[name].forEach(function (v) {
+        var opt = document.createElement("option");
+        opt.value = v.id;
+        // 下拉项长这样：晓晓 · 女 · 温柔女声
+        opt.textContent = v.name + " · " + v.gender + " · " + (v.tag || "");
+        og.appendChild(opt);
+      });
+      el.voiceSel.appendChild(og);
+    });
+
+    el.voiceCount.textContent = list.length + " 个";
+
+    var saved = "";
+    try { saved = localStorage.getItem("tts.voice") || ""; } catch (e) {}
+    var exists = list.some(function (v) { return v.id === saved; });
+    selectVoice(exists ? saved : (list[0] && list[0].id) || "");
+  }
+
+  function currentVoice() {
+    for (var i = 0; i < state.voices.length; i++) {
+      if (state.voices[i].id === state.voiceId) return state.voices[i];
+    }
+    return null;
+  }
+
+  function selectVoice(id) {
+    state.voiceId = id;
+    el.voiceSel.value = id;
+    try { localStorage.setItem("tts.voice", id); } catch (e) {}
+  }
+
+  /* ================= 调接口 ================= */
+
+  function requestAudio(text, voiceId) {
+    var p = buildParams();
+    return fetch("/api/synthesize", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: text,
+        voice: voiceId,
+        rate: p.rate,
+        pitch: p.pitch,
+        volume: p.volume
+      })
+    }).then(function (res) {
+      if (res.ok) return res.blob();
+      return res.json().then(function (data) {
+        var msg = data && typeof data.detail === "string" ? data.detail : "合成失败，请稍后再试";
+        throw new Error(msg);
+      }, function () {
+        throw new Error("合成失败，请稍后再试（HTTP " + res.status + "）");
+      });
+    });
+  }
+
+  function playBlob(blob) {
+    if (state.url) URL.revokeObjectURL(state.url);   // 释放上一份，避免内存越攒越多
+    state.url = URL.createObjectURL(blob);
+    el.audio.src = state.url;
+
+    el.pauseBtn.disabled = false;
+    el.stopBtn.disabled = false;
+    el.audio.currentTime = 0;
+    el.bar.style.width = "0%";
+    setStatus("播放中", true);
+
+    var p = el.audio.play();
+    if (p && p.catch) {
+      p.catch(function () {
+        // 浏览器拦截自动播放时不算失败，点「暂停」旁的按钮即可手动播
+        setStatus("已就绪，点播放按钮", false);
+      });
+    }
+  }
+
+  /* ================= 试听例句 ================= */
+
+  function previewVoice(voice, btn) {
+    if (state.busy) return;
+    btn.classList.add("loading");
+    btn.disabled = true;
+    setStatus("正在合成…", true);
+
+    requestAudio(voice.sample, voice.id)
+      .then(function (blob) { playBlob(blob); })
+      .catch(function (err) {
+        showError(err.message);
+        setStatus("合成失败", false);
+      })
+      .then(function () {
+        btn.classList.remove("loading");
+        btn.disabled = false;
+      });
+  }
+
+  /* ================= 主流程 ================= */
+
+  function setBusy(on) {
+    state.busy = on;
+    el.playBtn.disabled = on;
+    el.downloadBtn.disabled = on || !state.lastBlob;
+  }
+
+  function synthesizeCurrent() {
+    var text = el.text.value.trim();
+    if (!text) {
+      showError("先输入一点文字吧");
+      el.text.focus();
+      return;
+    }
+    if (!state.voiceId) {
+      showError("请先选一个音色");
+      return;
+    }
+    if (state.busy) return;
+
+    setBusy(true);
+    el.playLabel.textContent = "合成中…";
+    setStatus("正在合成…", true);
+
+    requestAudio(text, state.voiceId)
+      .then(function (blob) {
+        state.lastBlob = blob;
+        el.downloadBtn.disabled = false;
+        playBlob(blob);
+      })
+      .catch(function (err) {
+        showError(err.message);
+        setStatus("合成失败", false);
+      })
+      .then(function () {
+        setBusy(false);
+        el.playLabel.textContent = "播放";
+      });
+  }
+
+  /* ================= 播放控制 ================= */
+
+  function togglePause() {
+    if (!el.audio.src) return;
+    if (el.audio.paused) {
+      if (el.audio.ended) el.audio.currentTime = 0;
+      el.audio.play();
+      setStatus("播放中", true);
+    } else {
+      el.audio.pause();
+      setStatus("已暂停", false);
+    }
+  }
+
+  function stopPlayback() {
+    state.stopped = true;
+    if (el.audio.src) {
+      el.audio.pause();
+      el.audio.currentTime = 0;
+    }
+    el.bar.style.width = "0%";
+    setStatus("已停止", false);
+    setTimeout(function () { state.stopped = false; }, 200);
+  }
+
+  /* ================= 下载 ================= */
+
+  function downloadCurrent() {
+    if (!state.lastBlob) return;
+    var url = URL.createObjectURL(state.lastBlob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "语音_" + stamp(new Date()) + ".mp3";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+  }
+
+  /* ================= 事件 ================= */
+
+  el.text.addEventListener("input", updateCount);
+
+  // 下拉框切音色 → 立刻记住，不用额外确认
+  el.voiceSel.addEventListener("change", function () { selectVoice(el.voiceSel.value); });
+
+  // 右侧 ▶ ：试听当前选中音色的固定例句
+  el.voicePreview.addEventListener("click", function () {
+    var v = currentVoice();
+    if (v) previewVoice(v, el.voicePreview);
+  });
+
+  el.rate.addEventListener("input", syncLabels);
+  el.pitch.addEventListener("input", syncLabels);
+  el.volume.addEventListener("input", syncLabels);
+
+  // 点数值归零
+  el.rateVal.addEventListener("click", function () { el.rate.value = 1; syncLabels(); });
+  el.pitchVal.addEventListener("click", function () { el.pitch.value = 0; syncLabels(); });
+  el.volumeVal.addEventListener("click", function () { el.volume.value = 1; syncLabels(); });
+
+  el.playBtn.addEventListener("click", synthesizeCurrent);
+  el.pauseBtn.addEventListener("click", togglePause);
+  el.stopBtn.addEventListener("click", stopPlayback);
+  el.downloadBtn.addEventListener("click", downloadCurrent);
+
+  el.audio.addEventListener("timeupdate", function () {
+    if (el.audio.duration) {
+      el.bar.style.width = Math.min(100, (el.audio.currentTime / el.audio.duration) * 100).toFixed(1) + "%";
+    }
+  });
+
+  el.audio.addEventListener("play", function () {
+    el.pauseLabel.textContent = "暂停";
+    if (!state.stopped) setStatus("播放中", true);
+  });
+
+  el.audio.addEventListener("pause", function () {
+    el.pauseLabel.textContent = "继续";
+    if (state.stopped) return;
+    if (el.audio.ended) return;
+    setStatus("已暂停", false);
+  });
+
+  el.audio.addEventListener("ended", function () {
+    el.bar.style.width = "100%";
+    el.pauseLabel.textContent = "暂停";
+    setStatus("播放完成", false);
+    setTimeout(function () {
+      if (el.audio.ended) el.bar.style.width = "0%";
+    }, 900);
+  });
+
+  // 示例 / 清空
+  var chips = document.querySelectorAll("[data-sample], [data-clear]");
+  for (var i = 0; i < chips.length; i++) {
+    (function (btn) {
+      btn.addEventListener("click", function () {
+        el.text.value = btn.dataset.clear ? "" : btn.dataset.sample;
+        updateCount();
+        el.text.focus();
+      });
+    })(chips[i]);
+  }
+
+  // 快捷键
+  window.addEventListener("keydown", function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+      e.preventDefault();
+      synthesizeCurrent();
+    }
+    if (e.key === "Escape") stopPlayback();
+  });
+
+  /* ================= 初始化 ================= */
+
+  syncLabels();
+  updateCount();
+  setStatus("就绪", false);
+
+  fetch("/api/voices")
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+      state.voices = data.voices || [];
+      if (!state.voices.length) throw new Error("没有可用音色");
+      renderVoices(state.voices);
+    })
+    .catch(function () {
+      el.voiceCount.textContent = "加载失败";
+      showError("音色列表加载失败，请刷新页面");
+    });
+
+  /* ================= 心跳：让后台知道页面还开着 ================= */
+  // 没窗口了，靠这个判断何时停服务：每 5 秒报一次到，关页面时发一次 bye
+  function ping() {
+    fetch("/api/ping", { method: "POST", keepalive: true }).catch(function () {});
+  }
+  ping();
+  var pingTimer = setInterval(ping, 5000);
+
+  window.addEventListener("pagehide", function () {
+    clearInterval(pingTimer);
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon("/api/bye");
+    } else {
+      fetch("/api/bye", { method: "POST", keepalive: true }).catch(function () {});
+    }
+  });
+})();
+</script>
+</body>
+</html>
